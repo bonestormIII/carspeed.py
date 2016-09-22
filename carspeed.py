@@ -1,6 +1,4 @@
 # import the necessary packages
-from picamera.array import PiRGBArray
-from picamera import PiCamera
 import time
 import math
 import datetime
@@ -105,13 +103,8 @@ loop_count = 0
 prompt = ''
 
 # initialize the camera 
-camera = PiCamera()
-camera.resolution = RESOLUTION
-camera.framerate = FPS
-camera.vflip = True
-camera.hflip = True
+camera = cv2.VideoCapture(0)
 
-rawCapture = PiRGBArray(camera, size=camera.resolution)
 # allow the camera to warm up
 time.sleep(0.9)
 
@@ -123,9 +116,7 @@ cv2.moveWindow("Speed Camera", 10, 40)
 cv2.setMouseCallback('Speed Camera',draw_rectangle)
  
 # grab a reference image to use for drawing the monitored area's boundry
-camera.capture(rawCapture, format="bgr", use_video_port=True)
-image = rawCapture.array
-rawCapture.truncate(0)
+ret, image = camera.read()
 org_image = image.copy()
 
 prompt = "Define the monitored area - press 'c' to continue" 
@@ -178,12 +169,12 @@ print(" monitored_area {}".format(monitored_width * monitored_height))
 #   This keeps the picamera in capture mode - it doesn't need
 #   to prep for each frame's capture.
 
-for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
+while(True):
     #initialize the timestamp
     timestamp = datetime.datetime.now()
  
     # grab the raw NumPy array representing the image 
-    image = frame.array
+    ret, image = camera.read()
  
     # crop the frame to the monitored area, convert it to grayscale, and blur it
     # crop area defined by [y1:y2,x1:x2]
@@ -197,7 +188,6 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
     if base_image is None:
         base_image = gray.copy().astype("float")
         lastTime = timestamp
-        rawCapture.truncate(0)
         cv2.imshow("Speed Camera", image)
         continue
  
@@ -312,9 +302,9 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
         loop_count = 0
          
     # clear the stream in preparation for the next frame
-    rawCapture.truncate(0)
     loop_count = loop_count + 1
   
 # cleanup the camera and close any open windows
+camera.release()
 cv2.destroyAllWindows()
 
