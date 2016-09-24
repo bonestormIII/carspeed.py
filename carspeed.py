@@ -52,6 +52,7 @@ IMAGEWIDTH = 640
 IMAGEHEIGHT = 480
 RESOLUTION = [IMAGEWIDTH,IMAGEHEIGHT]
 FOV = 48
+SPEED_LIMIT = 30 #<---- enter the speed limit of your street
 
 # the following enumerated values are used to make the program more readable
 WAITING = 0
@@ -252,9 +253,9 @@ while(True):
                 real_x = upper_left_x + x
                 # is front of object outside the monitired boundary? Then write date, time and speed on image
                 # and save it 
-                if ((x <= 2) and (direction == RIGHT_TO_LEFT)) \
+                if (((x <= 2) and (direction == RIGHT_TO_LEFT)) \
                         or ((x+w >= monitored_width - 2) \
-                        and (direction == LEFT_TO_RIGHT)):
+                        and (direction == LEFT_TO_RIGHT))) and (mph > SPEED_LIMIT):
                     # timestamp the image
                     cv2.putText(image, datetime.datetime.now().strftime("%A %d %B %Y %I:%M:%S%p"),
                         (10, image.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 255, 0), 1)
