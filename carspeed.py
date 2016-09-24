@@ -44,10 +44,10 @@ def draw_rectangle(event,x,y,flags,param):
         cv2.rectangle(image,(ix,iy),(fx,fy),(0,255,0),2)
         
 # define some constants
-DISTANCE = 13  #<---- enter your distance-to-road value here
+DISTANCE = 60  #<---- enter your distance-to-road value here
 THRESHOLD = 15
 MIN_AREA = 175
-BLURSIZE = (15,15)
+BLURSIZE = (21,21)
 IMAGEWIDTH = 640
 IMAGEHEIGHT = 480
 RESOLUTION = [IMAGEWIDTH,IMAGEHEIGHT]
@@ -168,6 +168,24 @@ print(" monitored_area {}".format(monitored_width * monitored_height))
 #   This keeps the picamera in capture mode - it doesn't need
 #   to prep for each frame's capture.
 
+while base_image is None:
+    ret, image = camera.read();
+    prompt_on_image("Press c to grab the base image")
+    cv2.imshow("Speed Camera", image)
+    key = cv2.waitKey(1) & 0xFF
+
+    # if the `q` key is pressed, break from the loop and terminate processing
+    if key == ord("c"):
+        # crop the frame to the monitored area, convert it to grayscale, and blur it
+        # crop area defined by [y1:y2,x1:x2]
+        gray = image[upper_left_y:lower_right_y,upper_left_x:lower_right_x]
+     
+        # convert it to grayscale, and blur it
+        gray = cv2.cvtColor(gray, cv2.COLOR_BGR2GRAY)
+        gray = cv2.GaussianBlur(gray, BLURSIZE, 0)
+        base_image = gray.copy().astype("float")
+        break
+    
 while(True):
     #initialize the timestamp
     timestamp = datetime.datetime.now()
@@ -182,13 +200,6 @@ while(True):
     # convert it to grayscale, and blur it
     gray = cv2.cvtColor(gray, cv2.COLOR_BGR2GRAY)
     gray = cv2.GaussianBlur(gray, BLURSIZE, 0)
- 
-    # if the base image has not been defined, initialize it
-    if base_image is None:
-        base_image = gray.copy().astype("float")
-        lastTime = timestamp
-        cv2.imshow("Speed Camera", image)
-        continue
  
     # compute the absolute difference between the current image and
     # base image and then turn eveything lighter than THRESHOLD into
