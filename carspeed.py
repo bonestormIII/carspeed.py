@@ -4,6 +4,25 @@ import math
 import datetime
 import cv2
 
+# define some constants
+DISTANCE = 60  #<---- enter your distance-to-road value here
+THRESHOLD = 15
+MIN_AREA = 175
+BLURSIZE = (21,21)
+IMAGEWIDTH = 640
+IMAGEHEIGHT = 480
+RESOLUTION = [IMAGEWIDTH,IMAGEHEIGHT]
+FOV = 48
+SPEED_LIMIT = 33 #<---- enter the speed limit of your street
+
+# the following enumerated values are used to make the program more readable
+WAITING = 0
+TRACKING = 1
+SAVING = 2
+UNKNOWN = 0
+LEFT_TO_RIGHT = 1
+RIGHT_TO_LEFT = 2
+
 # place a prompt on the displayed image
 def prompt_on_image(txt):
     global image
@@ -43,25 +62,6 @@ def draw_rectangle(event,x,y,flags,param):
         prompt_on_image(prompt)
         cv2.rectangle(image,(ix,iy),(fx,fy),(0,255,0),2)
         
-# define some constants
-DISTANCE = 60  #<---- enter your distance-to-road value here
-THRESHOLD = 15
-MIN_AREA = 175
-BLURSIZE = (21,21)
-IMAGEWIDTH = 640
-IMAGEHEIGHT = 480
-RESOLUTION = [IMAGEWIDTH,IMAGEHEIGHT]
-FOV = 48
-SPEED_LIMIT = 30 #<---- enter the speed limit of your street
-
-# the following enumerated values are used to make the program more readable
-WAITING = 0
-TRACKING = 1
-SAVING = 2
-UNKNOWN = 0
-LEFT_TO_RIGHT = 1
-RIGHT_TO_LEFT = 2
-
 # calculate the the width of the image at the distance specified
 frame_width_ft = 2*(math.tan(math.radians(FOV*0.5))*DISTANCE)
 ftperpixel = frame_width_ft / float(IMAGEWIDTH)
@@ -255,7 +255,7 @@ while(True):
                 # and save it 
                 if (((x <= 2) and (direction == RIGHT_TO_LEFT)) \
                         or ((x+w >= monitored_width - 2) \
-                        and (direction == LEFT_TO_RIGHT))) and (mph > SPEED_LIMIT):
+                        and (direction == LEFT_TO_RIGHT))) and (last_mph > SPEED_LIMIT):
                     # timestamp the image
                     cv2.putText(image, datetime.datetime.now().strftime("%A %d %B %Y %I:%M:%S%p"),
                         (10, image.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 255, 0), 1)
